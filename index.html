@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enhanced Finance Tracker</title>
+<style>
+        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; background: linear-gradient(to right, #4facfe, #00f2fe); color: #333; }
+        .container { max-width: 600px; margin: auto; background: #ffffff; padding: 20px; border-radius: 12px; box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3); }
+        h2 { text-align: center; color: #444; }
+        input, select, button { width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        button { background: #28a745; color: white; cursor: pointer; transition: 0.3s; }
+        button:hover { background: #218838; }
+        .balance { font-size: 1.5em; font-weight: bold; margin-top: 10px; text-align: center; }
+        .positive { color: green; }
+        .negative { color: red; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #007bff; color: white; }
+        .delete-btn { background: #dc3545; color: white; padding: 5px; border: none; cursor: pointer; }
+        .delete-btn:hover { background: #c82333; }
+        .download-btn { background: #007bff; color: white; margin-top: 10px; }
+        .download-btn:hover { background: #0056b3; }
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Enhanced Finance Tracker</h2>
+<div class="balance">Balance: <span id="balance">$0.00</span></div>
+<input type="text" id="desc" placeholder="Enter Description">
+<input type="number" id="amount" placeholder="Enter Amount">
+<select id="category">
+<option value="Income">Income</option>
+<option value="Expense">Expense</option>
+</select>
+<button onclick="addTransaction()">Add Transaction</button>
+<button class="download-btn" onclick="downloadTransactions()">Download Transactions</button>
+<h3>Transaction History</h3>
+<table>
+<thead>
+<tr>
+<th>Description</th>
+<th>Amount</th>
+<th>Category</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody id="transactions"></tbody>
+</table>
+</div>
+<script>
+        let transactions = [];
+        let balance = 0;
+        function addTransaction() {
+            let desc = document.getElementById('desc').value;
+            let amount = parseFloat(document.getElementById('amount').value);
+            let category = document.getElementById('category').value;
+            if (desc && amount) {
+                transactions.push({ desc, amount, category });
+                balance += (category === "Income" ? amount : -amount);
+                updateTable();
+                updateBalance();
+                document.getElementById('desc').value = '';
+                document.getElementById('amount').value = '';
+            }
+        }
+        function deleteTransaction(index) {
+            balance -= (transactions[index].category === "Income" ? transactions[index].amount : -transactions[index].amount);
+            transactions.splice(index, 1);
+            updateTable();
+            updateBalance();
+        }
+        function updateTable() {
+            let tableBody = document.getElementById('transactions');
+            tableBody.innerHTML = '';
+            transactions.forEach((t, index) => {
+                let row = `<tr>
+<td>${t.desc}</td>
+<td>$${t.amount.toFixed(2)}</td>
+<td>${t.category}</td>
+<td><button class="delete-btn" onclick="deleteTransaction(${index})">Delete</button></td>
+</tr>`;
+                tableBody.innerHTML += row;
+            });
+        }
+        function updateBalance() {
+            let balanceElement = document.getElementById('balance');
+            balanceElement.textContent = `$${balance.toFixed(2)}`;
+            balanceElement.className = balance >= 0 ? 'positive' : 'negative';
+        }
+        function downloadTransactions() {
+            let csvContent = "data:text/csv;charset=utf-8,Description,Amount,Category\n";
+            transactions.forEach(t => {
+                csvContent += `${t.desc},${t.amount},${t.category}\n`;
+            });
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "transactions.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+</script>
+</body>
+</html>
